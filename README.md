@@ -40,3 +40,5 @@ This repository demonstrates a basic implementation of Firebase Authentication i
 ## License
 
 This project is licensed under the MIT License.
+
+<!-- gitpulse:contribution index="1" timestamp="2026-05-02" -->
