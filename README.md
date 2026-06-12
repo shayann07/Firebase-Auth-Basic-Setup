@@ -1,61 +1,85 @@
 # Firebase Auth Basic Setup
 
-This repository demonstrates a basic implementation of Firebase Authentication in an Android app. It provides boilerplate code and simple UI examples to get you up and running quickly with user authentication using Firebase.
+A small Kotlin Android sample wiring Firebase Authentication email/password sign-in, sign-up, persistent session, and sign-out across three activities.
+
+## Status
+
+Educational sample. Single-module Android app with Firebase Auth and the Firestore Android SDK as a dependency (no Firestore reads or writes are performed in the audited sources).
 
 ## Features
 
-- Email/password registration and sign‑in.
-- Persistent user session (auto login).
-- Sign out functionality.
-- Error handling and input validation.
-- Minimal UI built with Android Jetpack components.
+- Register a new user with email and password, with confirm-password matching and empty-field validation.
+- Log in with email and password using `FirebaseAuth.signInWithEmailAndPassword`.
+- Auto-route to `MainActivity` while a Firebase user session exists, and back to `LoginActivity` on sign-out.
+- Display the current user's email on the home screen.
+- Sign out via `FirebaseAuth.signOut`.
+- View binding enabled across all three screens.
+
+## Tech Stack
+
+- **Language:** Kotlin (JVM target 11).
+- **UI:** Android Views with AppCompat, Material Components, ConstraintLayout; View Binding (`buildFeatures.viewBinding = true`).
+- **Auth/Backend SDKs:** `com.google.firebase:firebase-auth` and `com.google.firebase:firebase-firestore` declared via the project's `libs.versions.toml`.
+- **Build:** Android Gradle Plugin and the `com.google.gms.google-services` Gradle plugin (alias `google.gms.google.services`).
+- **SDK levels:** `compileSdk 36`, `minSdk 24`, `targetSdk 36`.
+
+## Architecture
+
+- `LoginActivity` is the launcher activity. In `onStart` it forwards to `MainActivity` if `FirebaseAuth.currentUser` is non-null. Login button calls `signInWithEmailAndPassword` and routes to `MainActivity` on success.
+- `RegisterActivity` collects email and two password fields, ensures they match, then calls `createUserWithEmailAndPassword` and goes straight to `MainActivity` on success.
+- `MainActivity` shows the current user's email, sends sign-outs back to `LoginActivity`, and also redirects to login if the session disappears.
+- `FirebaseAuth.getInstance()` is created locally in each activity; there is no shared application class, repository, or view model layer.
+
+## Project Structure
+
+```
+app/
+├── build.gradle.kts
+├── google-services.json          // tracked; required by the google-services plugin
+└── src/main/
+    ├── AndroidManifest.xml       // INTERNET + ACCESS_NETWORK_STATE; LoginActivity is the launcher
+    ├── java/com/shayan/firebaseauthsetup/
+    │   ├── LoginActivity.kt
+    │   ├── MainActivity.kt
+    │   └── RegisterActivity.kt
+    └── res/
+        ├── layout/
+        │   ├── activity_login.xml
+        │   ├── activity_main.xml
+        │   └── activity_register.xml
+        ├── values/
+        └── ...
+```
 
 ## Getting Started
 
-1. Clone this repository:
+### Prerequisites
 
-   ```bash
-   git clone https://github.com/shayann07/Firebase-Auth-Basic-Setup.git
-   ```
+- Android Studio with Android Gradle Plugin and Kotlin support compatible with the wrapper version in `gradle/wrapper`.
+- JDK 11.
+- Android SDK with `compileSdk 36` and `minSdk 24`.
+- A Firebase project with Email/Password sign-in enabled.
 
-2. Open the project in **Android Studio**.
+### Configure Firebase
 
-3. Allow Gradle to download dependencies.
+The repository contains an `app/google-services.json`. To run against your own Firebase project, replace it with the `google-services.json` exported from your project. Sign-in must be enabled under Authentication → Sign-in method → Email/Password in the Firebase console.
 
-4. Create a new project in the **Firebase console**, enable **Email/Password** sign‑in method, and download the `google-services.json` file into the `app/` directory.
+### Run
 
-5. Run the app on a device or emulator:
+```bash
+git clone https://github.com/shayann07/Firebase-Auth-Basic-Setup.git
+```
 
-   ```bash
-   ./gradlew installDebug
-   ```
+Open in Android Studio, sync Gradle, then run the `app` configuration on a device or emulator. From the command line:
 
-## Technologies Used
+```bash
+./gradlew :app:installDebug
+```
 
-- **Kotlin** – primary language.
-- **Firebase Authentication** – email/password sign‑in.
-- **Firebase Android SDK** – integration with Google services.
-- **Android Jetpack** libraries.
+## Limitations
 
-## License
-
-This project is licensed under the MIT License.
-
-<!-- gitpulse:contribution index="1" timestamp="2026-05-02" -->
-<!-- gitpulse:contribution index="2" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="3" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="4" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="5" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="6" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="7" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="8" timestamp="2026-05-03" -->
-<!-- gitpulse:contribution index="9" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="10" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="11" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="12" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="13" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="14" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="15" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="16" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="17" timestamp="2026-05-04" -->
-<!-- gitpulse:contribution index="18" timestamp="2026-05-04" -->
+- Firestore is declared as a dependency but no Firestore reads or writes are performed in the audited sources.
+- Login validation only checks "both empty"; one empty field still calls Firebase and shows the generic failure toast.
+- All error states surface as a single "Login failed" or "Registration failed" toast without the underlying `task.exception` details.
+- A `google-services.json` is committed to the repository; replace it with your own project's file before using.
+- Only generated example tests are present, and there is no license file.
